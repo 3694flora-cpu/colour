@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>🌈 繽紛顏色挑戰 - 幼兒版</title>
+    <style>
+        :root { --bg-L: #E3F2FD; --bg-R: #FFF9C4; --bg-S: #F3E5F5; --font: 'Comic Sans MS', 'Microsoft JhengHei', cursive, sans-serif; }
+        * { box-sizing: border-box; }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; font-family: var(--font); overflow: hidden; background: #FFF0F5; touch-action: manipulation; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; }
+        #mode-select { position: fixed; inset: 0; background: linear-gradient(135deg, #FFF5F7, #FCE4EC, #E8F5E9, #FFF9C4); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; padding: 20px; }
+        #mode-select h1 { font-size: clamp(2rem, 6vw, 2.8rem); color: #FF6B6B; text-shadow: 3px 3px 0 #FFCCD5; animation: bounce 1s infinite alternate; }
+        @keyframes bounce { from { transform: translateY(0); } to { transform: translateY(-5px); } }
+        .mode-card-row { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; }
+        .mode-card { background: white; border-radius: 2rem; padding: 2rem 1.5rem; width: 200px; box-shadow: 0 8px 25px rgba(0,0,0,0.08); cursor: pointer; border: 4px dashed #FFCCD5; display: flex; flex-direction: column; align-items: center; gap: 10px; transition: 0.2s; }
+        .mode-card:active { transform: scale(0.96); } .mode-card.solo { border-color: #CE93D8; } .mode-card.dual { border-color: #FFCC80; }
+        .mode-card .icon { font-size: 3.5rem; } .mode-card h3 { font-size: 1.3rem; color: #555; }
+        .btn-music { position: fixed; top: 10px; right: 10px; z-index: 10000; width: 48px; height: 48px; border-radius: 50%; font-size: 1.5rem; border: 3px solid #FFCCD5; background: white; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .player-select-panel { position: absolute; inset: 0; background: rgba(255,255,255,0.96); z-index: 1600; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 15px; }
+        .player-grid { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; max-width: 95%; }
+        .player-card { background: white; border-radius: 18px; padding: 10px 6px; width: 80px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); cursor: pointer; border: 3px solid #EEE; display: flex; flex-direction: column; align-items: center; gap: 3px; transition: 0.2s; }
+        .player-card:active { background: #FFF3E0; border-color: #FF9800; } .player-card.selected { border-color: #FF9800; background: #FFF8E1; }
+        .player-card .avatar { font-size: 2rem; } .player-card .name { font-size: 0.65rem; font-weight: bold; color: #666; }
+        .btn { padding: 0.9rem 1.8rem; font-size: 1rem; font-weight: bold; border-radius: 2.5rem; border: none; cursor: pointer; margin: 6px; color: white; width: 80%; max-width: 260px; font-family: var(--font); box-shadow: 0 4px 0 rgba(0,0,0,0.15); transition: 0.1s; }
+        .btn:active { transform: translateY(4px); box-shadow: none; } .btn-s { background: #66BB6A; } .btn-h { background: #FF9800; } .btn-back { background: #90A4AE; }
+        .btn-end { background: #EF5350; font-size: 0.9rem; padding: 0.6rem 1.2rem; width: auto; }
+        #dual-header { position: absolute; top: 0; width: 100%; height: 70px; background: white; display: none; z-index: 2000; border-bottom: 4px solid #FFCCD5; flex-direction: column; justify-content: center; align-items: center; }
+        .timer-row { display: flex; align-items: center; gap: 8px; }
+        .timer-val { font-size: 1.2rem; font-weight: bold; color: #FF6B6B; background: #FFF5F7; padding: 4px 14px; border-radius: 20px; border: 2px solid #FFCCD5; }
+        .status-tag { font-size: 0.7rem; font-weight: bold; padding: 4px 10px; border-radius: 12px; }
+        .status-done { background: #C8E6C9; color: #2E7D32; } .status-playing { background: #FFF3E0; color: #E65100; } .status-waiting { background: #F5F5F5; color: #999; } .status-challenge { background: #FFCDD2; color: #B71C1C; }
+        .prog-bar-row { display: flex; width: 100%; gap: 8px; padding: 4px 10px; align-items: center; }
+        .p-half { flex: 1; height: 10px; background: #EEE; border-radius: 5px; overflow: hidden; } .p-fill { height: 100%; width: 0%; transition: width 0.4s; border-radius: 5px; }
+        #f-L { background: #55E6C1; } #f-R { background: #FFD93D; }
+        #solo-container { display: none; width: 100vw; height: 100vh; padding-top: 60px; background: var(--bg-S); flex-direction: column; }
+        #dual-container { display: none; width: 100vw; height: 100vh; padding-top: 70px; gap: 4px; }
+        .player-side { flex: 1; position: relative; display: flex; flex-direction: column; overflow: hidden; border-radius: 25px 25px 0 0; margin: 0 2px; }
+        #side-L { background: var(--bg-L); } #side-R { background: var(--bg-R); }
+        .drop-grid { flex: 1; display: flex; flex-wrap: wrap; justify-content: center; align-content: center; gap: 14px; padding: 10px; }
+        .belly { width: 105px; height: 105px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 1.4rem; font-weight: bold; color: white; border: 5px solid rgba(255,255,255,0.9); box-shadow: 0 6px 18px rgba(0,0,0,0.12), 0 0 0 4px rgba(255,255,255,0.5); animation: float 3s infinite; text-shadow: 0 2px 4px rgba(0,0,0,0.3); }
+        #solo-container .belly { width: 125px; height: 125px; font-size: 1.8rem; }
+        @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+        .belly.success-anim { animation: bellySuccess 0.5s ease-out; } .belly.error-anim { animation: bellyError 0.4s ease-out; }
+        @keyframes bellySuccess { 0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(76,175,80,0.6); } 50% { transform: scale(1.2); box-shadow: 0 0 20px 10px rgba(76,175,80,0.8); } 100% { transform: scale(1); } }
+        @keyframes bellyError { 0%,100% { transform: translateX(0); } 20% { transform: translateX(-6px); } 40% { transform: translateX(6px); } 60% { transform: translateX(-3px); } 80% { transform: translateX(3px); } }
+        .ball-pit { height: 150px; background: rgba(255,255,255,0.5); border-top: 3px dashed #FFCCD5; display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 10px; padding: 12px; position: relative; }
+        .ball-pit::before { content: '👇 拖放球配對 👇'; position: absolute; top: -20px; left: 50%; transform: translateX(-50%); font-size: 10px; color: #BBB; pointer-events: none; }
+        .ball { width: 55px; height: 55px; border-radius: 50%; border: 4px solid white; box-shadow: 0 5px 10px rgba(0,0,0,0.12); cursor: pointer; touch-action: none; z-index: 10; }
+        .ball.dragging { z-index: 1000; transform: scale(1.15); } .ball.success-anim { animation: ballDisappear 0.3s forwards; } .ball.error-anim { animation: ballShake 0.5s; }
+        @keyframes ballDisappear { to { transform: scale(0); opacity: 0; } } @keyframes ballShake { 0%,100%{transform: translateX(0);}20%{transform: translateX(-8px);}40%{transform: translateX(8px);}60%{transform: translateX(-4px);}80%{transform: translateX(4px);} }
+        .feedback-wrapper { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 1000; pointer-events: none; }
+        .feedback-emoji { font-size: 6rem; } .feedback-text { font-size: 1.5rem; font-weight: bold; margin-top: 8px; background: rgba(255,255,255,0.9); padding: 4px 18px; border-radius: 20px; }
+        .challenge-banner { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #FF6B6B; color: white; padding: 10px 20px; border-radius: 25px; font-weight: bold; z-index: 1500; pointer-events: none; }
+        .waiting-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: #FF9800; font-size: 1.2rem; }
+        @media (max-width: 480px) { .belly { width: 80px; height: 80px; font-size: 1.1rem; } #solo-container .belly { width: 95px; height: 95px; font-size: 1.4rem; } .ball { width: 44px; height: 44px; } .player-card { width: 65px; } }
+    </style>
+</head>
+<body>
+<button class="btn-music" id="btnMusic">🎵</button>
+
+<div id="mode-select">
+    <h1>🌈 繽紛顏色挑戰</h1>
+    <div class="mode-card-row">
+        <div class="mode-card solo" id="btnSoloMode"><div class="icon">🧑‍🎨</div><h3>單人模式</h3><p>進階/簡單 → 選玩家<br>無限練習</p></div>
+        <div class="mode-card dual" id="btnDualMode"><div class="icon">👫</div><h3>雙人模式</h3><p>同步難度 → 各選玩家<br>60秒競速挑戰</p></div>
+    </div>
+</div>
+
+<div id="dual-header">
+    <div class="timer-row"><span class="status-tag status-waiting" id="tag-L">🦁 待選擇</span><span class="timer-val">⏱️ <span id="timer">60</span>s</span><span class="status-tag status-waiting" id="tag-R">🐬 待選擇</span></div>
+    <div class="prog-bar-row"><span class="prog-label" id="prog-label-L">0/5</span><div class="p-half"><div id="f-L" class="p-fill"></div></div><div class="p-half"><div id="f-R" class="p-fill"></div></div><span class="prog-label" id="prog-label-R">0/5</span></div>
+</div>
+
+<div id="solo-container">
+    <div id="soloMenu" class="player-select-panel"></div>
+    <div id="soloGameArea" style="display:none; flex:1; flex-direction:column;">
+        <div style="display:flex; align-items:center; justify-content:space-between; padding:5px 12px; background:white;"><span id="soloPlayerInfo"></span><span>🔄<b id="solo-rounds">0</b> ❌<b id="solo-errors">0</b></span><button class="btn-end" id="btnEndSolo">結束練習</button></div>
+        <div id="grid-S" class="drop-grid"></div><div id="pit-S" class="ball-pit"></div>
+    </div>
+    <div id="res-S" class="player-select-panel" style="display:none"><div style="font-size:3rem;">📋</div><h2>🌈 練習成果表</h2><div id="report-S" style="width:90%;max-height:40%;overflow-y:auto;text-align:left;"></div><button class="btn btn-s" id="btnRestartSolo">🔄 相同難度再來</button><button class="btn btn-back" id="btnSoloResBack">↩ 返回主選單</button></div>
+</div>
+
+<div id="dual-container">
+    <div id="side-L" class="player-side"><div id="select-L" class="player-select-panel"></div><div id="game-L" style="display:none; flex:1; flex-direction:column;"><div id="playerLabelL" style="padding:4px 8px;text-align:center;font-weight:bold;"></div><div id="grid-L" class="drop-grid"></div><div id="pit-L" class="ball-pit"></div></div><div id="res-L" class="player-select-panel" style="display:none"><div style="font-size:3rem;">🏆</div><h2>🌈 成果表</h2><div id="report-L" style="width:90%;max-height:40%;overflow-y:auto;"></div><button class="btn btn-s" id="btnDualRestart">🔄 再玩一次</button><button class="btn btn-back" id="btnDualBack">↩ 返回</button></div></div>
+    <div id="side-R" class="player-side"><div id="select-R" class="player-select-panel"></div><div id="game-R" style="display:none; flex:1; flex-direction:column;"><div id="playerLabelR" style="padding:4px 8px;text-align:center;font-weight:bold;"></div><div id="grid-R" class="drop-grid"></div><div id="pit-R" class="ball-pit"></div></div><div id="res-R" class="player-select-panel" style="display:none"><div style="font-size:3rem;">🏆</div><h2>🌈 成果表</h2><div id="report-R" style="width:90%;max-height:40%;overflow-y:auto;"></div><button class="btn btn-s" id="btnDualRestartR">🔄 再玩一次</button><button class="btn btn-back" id="btnDualBackR">↩ 返回</button></div></div>
+</div>
+
+<script>
+(function() {
+    const allPlayers = [
+        { name: 'Ali', avatar: '🦁' }, { name: '張杄熒', avatar: '🐱' }, { name: '徐晉恆', avatar: '🐶' },
+        { name: '徐浚宏', avatar: '🐼' }, { name: '何宙高', avatar: '🐨' }, { name: '吳柏賢', avatar: '🐸' },
+        { name: '黃子康', avatar: '🐵' }, { name: '陳樂宏', avatar: '🐬' }, { name: 'Subeeta', avatar: '🦊' },
+        { name: '陳梓晨', avatar: '🐰' }
+    ];
+    const baseColors = [ { n: '紅', v: '#FF5252' }, { n: '黃', v: '#FFD740' }, { n: '藍', v: '#448AFF' }, { n: '綠', v: '#69F0AE' } ];
+    const advancedColors = [...baseColors, { n: '橙', v: '#FF9100' }];
+
+    let audioCtx = null, musicGain = null, musicNodes = [], musicPlaying = false;
+    function getCtx() { if (!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)(); if (audioCtx.state === 'suspended') audioCtx.resume(); return audioCtx; }
+    function stopMusic() { musicPlaying = false; musicNodes.forEach(o => { try { o.stop(); } catch(e) {} }); musicNodes = []; if (musicGain) { musicGain.disconnect(); musicGain = null; } document.getElementById('btnMusic').textContent = '🔇'; }
+    function startMusic() { stopMusic(); const ctx = getCtx(); musicGain = ctx.createGain(); musicGain.gain.value = 0.12; musicGain.connect(ctx.destination); const melody = [262,294,330,349,392,349,330,294, 262,330,392,523, 392,330,294,262]; const dur = 0.35; function playMelody(start) { melody.forEach((f,i) => { const o = ctx.createOscillator(); o.type='triangle'; o.frequency.value=f; o.connect(musicGain); o.start(start+i*dur); o.stop(start+i*dur+dur-0.04); musicNodes.push(o); }); } playMelody(ctx.currentTime); const loopDuration = melody.length*dur*1000; function loop() { if (!musicPlaying) return; playMelody(ctx.currentTime+0.1); setTimeout(loop, loopDuration-100); } setTimeout(loop, loopDuration-200); musicPlaying = true; document.getElementById('btnMusic').textContent = '🎵'; }
+    function sfx(t) { try { const ctx = getCtx(), now = ctx.currentTime; if (t==='win') { [523,659,784].forEach((f,i) => { const o=ctx.createOscillator(),g=ctx.createGain(); o.connect(g);g.connect(ctx.destination);o.type='triangle';o.frequency.setValueAtTime(f,now+i*0.1);g.gain.setValueAtTime(0.3,now+i*0.1);g.gain.exponentialRampToValueAtTime(0.01,now+i*0.1+0.2);o.start(now+i*0.1);o.stop(now+i*0.1+0.25); }); return; } const o=ctx.createOscillator(),g=ctx.createGain(); o.connect(g);g.connect(ctx.destination); if (t==='ok') { o.type='sine';o.frequency.setValueAtTime(523,now);o.frequency.exponentialRampToValueAtTime(880,now+0.12); g.gain.setValueAtTime(0.35,now);g.gain.exponentialRampToValueAtTime(0.01,now+0.25); } else { o.type='square';o.frequency.setValueAtTime(220,now);o.frequency.linearRampToValueAtTime(110,now+0.2); g.gain.setValueAtTime(0.25,now);g.gain.exponentialRampToValueAtTime(0.01,now+0.3); } o.start(now);o.stop(now+0.35); } catch(e){} }
+    document.getElementById('btnMusic').addEventListener('click', () => { if (musicPlaying) stopMusic(); else startMusic(); });
+
+    let currentMode = null;
+    const MAX_ROUNDS_DUAL = 5, CHALLENGE_TRIGGER_SOLO = 3, CHALLENGE_TRIGGER_DUAL = 5;
+    let stats = { L: { s:0,m:[],mode:'',fin:false,started:false,inChallenge:false,player:null }, R: { s:0,m:[],mode:'',fin:false,started:false,inChallenge:false,player:null } };
+    let timeLeft = 60, timerOn = false, timerInterval = null;
+    let soloStats = { rounds:0,errors:0,mode:'',started:false,inChallenge:false,player:null,totalMistakes:[] };
+    let dualReady = { L:false, R:false };
+
+    function getPlayersByMode(mode) { const easyNames = ['黃子康','Ali','何宙高','陳樂宏','張杄熒']; const hardNames = ['吳柏賢','Subeeta','陳梓晨','徐浚宏','徐晉恆']; const names = mode==='s'?easyNames:hardNames; return allPlayers.filter(p => names.includes(p.name)); }
+    function pickRandom(arr, n) { return [...arr].sort(()=>Math.random()-0.5).slice(0,n); }
+    function getChallengeColors(mode) { return mode==='h'?advancedColors:pickRandom(baseColors,3); }
+    function saveScore(name, rounds, errors) { const key='colorGame_v2', data=JSON.parse(localStorage.getItem(key)||'{}'); const prev=data[name]; if(!prev||rounds>prev.rounds||(rounds===prev.rounds&&errors<prev.errors)) { data[name]={rounds,errors,time:Date.now()}; localStorage.setItem(key,JSON.stringify(data)); } }
+    function getBest(name) { const data=JSON.parse(localStorage.getItem('colorGame_v2')||'{}'); return data[name]||null; }
+
+    function buildPlayerGrid(containerId, players, callback) {
+        const grid = document.getElementById(containerId); grid.innerHTML = '';
+        players.forEach(p => {
+            const card = document.createElement('div'); card.className = 'player-card';
+            card.innerHTML = `<div class="avatar">${p.avatar}</div><div class="name">${p.name}</div>`;
+            card.addEventListener('click', (e) => { e.stopPropagation(); callback(p, card); });
+            grid.appendChild(card);
+        });
+    }
+
+    function showFeedback(id, emoji, text, color) {
+        const container = document.getElementById(id==='S'?'solo-container':('side-'+id)); if (!container) return;
+        const old = container.querySelector('.feedback-wrapper'); if (old) old.remove();
+        const wrapper = document.createElement('div'); wrapper.className = 'feedback-wrapper';
+        const emojiEl = document.createElement('div'); emojiEl.className = 'feedback-emoji'; emojiEl.textContent = emoji; emojiEl.style.color = color;
+        const textEl = document.createElement('div'); textEl.className = 'feedback-text'; textEl.textContent = text; textEl.style.color = color;
+        wrapper.appendChild(emojiEl); wrapper.appendChild(textEl); container.appendChild(wrapper);
+        setTimeout(() => wrapper.remove(), 600);
+    }
+
+    function attachDrag(el, containerId, gameType) {
+        let startX, startY, isDragging = false, pointerId = null;
+        const sideForDual = containerId.replace('side-','');
+        const container = document.getElementById(containerId);
+        const onStart = (e) => {
+            if (gameType==='dual' && (timeLeft<=0 || stats[sideForDual].fin)) return;
+            if (gameType==='solo' && !soloStats.started) return; if (isDragging) return;
+            e.preventDefault(); const pt = e.touches ? e.changedTouches[0] : e; if (!pt) return;
+            isDragging = true; pointerId = e.touches ? pt.identifier : 'mouse';
+            const rect = el.getBoundingClientRect(); startX = pt.clientX; startY = pt.clientY;
+            el.classList.add('dragging'); el.style.transition='none'; el.style.zIndex=1000;
+        };
+        const onMove = (e) => { if (!isDragging) return; e.preventDefault(); let pt = null; if (e.touches) { for (let i=0;i<e.touches.length;i++) if (e.touches[i].identifier===pointerId) { pt=e.touches[i]; break; } if (!pt) return; } else pt = e; el.style.transform = `translate(${pt.clientX-startX}px, ${pt.clientY-startY}px) scale(1.15)`; };
+        const onEnd = (e) => {
+            if (!isDragging) return; if (e.changedTouches) { let found=false; for (let i=0;i<e.changedTouches.length;i++) if (e.changedTouches[i].identifier===pointerId) { found=true; break; } if (!found) return; }
+            isDragging = false; pointerId = null; el.classList.remove('dragging'); el.style.zIndex=10;
+            const ballRect = el.getBoundingClientRect(); let hit = null;
+            document.querySelectorAll(`#${containerId} .belly`).forEach(belly => {
+                const r = belly.getBoundingClientRect();
+                const ox = Math.max(0, Math.min(ballRect.right,r.right)-Math.max(ballRect.left,r.left));
+                const oy = Math.max(0, Math.min(ballRect.bottom,r.bottom)-Math.max(ballRect.top,r.top));
+                if (ox*oy > ballRect.width*ballRect.height*0.3) hit = belly;
+            });
+            if (hit) {
+                if (hit.dataset.v === el.dataset.v) {
+                    sfx('ok'); hit.classList.add('success-anim'); el.classList.add('success-anim');
+                    showFeedback(gameType==='solo'?'S':sideForDual, '✅', '答對了！', '#4CAF50');
+                    setTimeout(() => hit.classList.remove('success-anim'), 500); el.style.transition='none'; cleanup();
+                    setTimeout(() => { if (el.parentNode) el.remove(); if (gameType==='solo') checkSoloLevelComplete(); else checkDualLevelComplete(sideForDual); }, 250);
+                } else {
+                    sfx('no'); hit.classList.add('error-anim'); el.classList.add('error-anim');
+                    showFeedback(gameType==='solo'?'S':sideForDual, '❌', '再試試', '#F44336');
+                    setTimeout(() => hit.classList.remove('error-anim'), 400); setTimeout(() => el.classList.remove('error-anim'), 500);
+                    if (gameType==='solo') { soloStats.errors++; soloStats.totalMistakes.push({bv:el.dataset.n, bc:el.style.background, tv:hit.dataset.n, tc:hit.style.background}); updateSoloUI(); }
+                    else stats[sideForDual].m.push({bv:el.dataset.n, bc:el.style.background, tv:hit.dataset.n, tc:hit.style.background});
+                    resetPos();
+                }
+            } else resetPos();
+        };
+        const resetPos = () => { el.style.transition = 'transform 0.35s cubic-bezier(0.25,0.8,0.25,1.2)'; el.style.transform = 'translate(0,0) scale(1)'; el.style.zIndex=10; };
+        const cleanup = () => { el.removeEventListener('touchstart', onStart); el.removeEventListener('mousedown', onStart); if (container) { container.removeEventListener('touchmove', onMove); container.removeEventListener('mousemove', onMove); container.removeEventListener('touchend', onEnd); container.removeEventListener('mouseup', onEnd); container.removeEventListener('touchcancel', onEnd); } };
+        el.addEventListener('touchstart', onStart, {passive:false}); el.addEventListener('mousedown', onStart);
+        if (container) { container.addEventListener('touchmove', onMove, {passive:false}); container.addEventListener('mousemove', onMove); container.addEventListener('touchend', onEnd); container.addEventListener('mouseup', onEnd); container.addEventListener('touchcancel', onEnd); }
+    }
+
+    function setupDual(side, mode) { if (stats[side].started || stats[side].fin || timeLeft<=0) return; stats[side].mode = mode; stats[side].started = true; stats[side].inChallenge = false; document.getElementById('tag-'+side).className = 'status-tag status-playing'; updateDualProgressBar(side); loadDualLevel(side); }
+    function loadDualLevel(side) { if (stats[side].fin || timeLeft<=0) return; const grid = document.getElementById('grid-'+side), pit = document.getElementById('pit-'+side); grid.innerHTML = ''; pit.innerHTML = ''; const isChallenge = stats[side].inChallenge; let colorSet = isChallenge ? getChallengeColors(stats[side].mode) : baseColors; let numBelly = isChallenge ? colorSet.length : (stats[side].mode==='h'?4:2); let numBall = numBelly + (isChallenge?1:1); const cur = pickRandom(colorSet, numBelly); cur.forEach(c => { const d = document.createElement('div'); d.className='belly'; d.dataset.v=c.v; d.dataset.n=c.n; d.style.background=c.v; d.textContent=c.n; grid.appendChild(d); }); const balls = []; for (let i=0; i<numBall; i++) balls.push(cur[i%cur.length]); balls.sort(()=>Math.random()-0.5); balls.forEach(c => { const b = document.createElement('div'); b.className='ball'; b.style.background=c.v; b.dataset.v=c.v; b.dataset.n=c.n; pit.appendChild(b); attachDrag(b, 'side-'+side, 'dual'); }); }
+    function checkDualLevelComplete(side) { if (!document.querySelector(`#side-${side} .ball`)) { stats[side].s++; updateDualProgressBar(side); if (stats[side].s === CHALLENGE_TRIGGER_DUAL && !stats[side].inChallenge) { stats[side].inChallenge = true; document.getElementById('tag-'+side).className = 'status-tag status-challenge'; showChallengeBanner('side-'+side); setTimeout(() => loadDualLevel(side), 1500); } else if (stats[side].inChallenge) { if (timeLeft > 0) setTimeout(() => loadDualLevel(side), 400); else { stats[side].fin = true; showDualResult(side, true); } } else { if (timeLeft > 0) setTimeout(() => loadDualLevel(side), 350); else { stats[side].fin = true; showDualResult(side, false); } } } }
+    function showChallengeBanner(id) { const c = document.getElementById(id); if (!c) return; const b = document.createElement('div'); b.className='challenge-banner'; b.textContent='🚀 挑戰題！更多顏色'; c.appendChild(b); setTimeout(() => b.remove(), 1500); }
+    function showDualResult(side, win) { document.getElementById('res-'+side).style.display='flex'; document.getElementById('game-'+side).style.display='none'; document.getElementById('tag-'+side).className = 'status-tag status-done'; if (stats[side].player) saveScore(stats[side].player.name, stats[side].s, stats[side].m.length); const best = stats[side].player ? getBest(stats[side].player.name) : null; let html = `<p><b>${stats[side].player?.avatar||''} ${stats[side].player?.name||''}</b></p><p>📊 總完成題數：<b>${stats[side].s}</b></p><p>❌ 錯誤次數：<b>${stats[side].m.length}</b></p>`; if (best) html += `<p>🏆 最佳紀錄：${best.rounds}題 ${best.errors}錯</p>`; if (stats[side].m.length) { stats[side].m.forEach(e => html += `<div style="display:flex;align-items:center;gap:4px;margin:2px 0;"><span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:${e.bc};"></span>${e.bv}球 → <span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:${e.tc};"></span>${e.tv}肚子</div>`); } else html += '<p>🌟 完美！</p>'; document.getElementById('report-'+side).innerHTML = html; }
+    function finishAllDual() { if (!stats.L.fin) { stats.L.fin=true; showDualResult('L',false); } if (!stats.R.fin) { stats.R.fin=true; showDualResult('R',false); } }
+
+    function setupSolo(m) { soloStats.mode = m; soloStats.started = true; soloStats.rounds = 0; soloStats.errors = 0; soloStats.totalMistakes = []; soloStats.inChallenge = false; document.getElementById('res-S').style.display='none'; document.getElementById('soloGameArea').style.display='flex'; updateSoloUI(); loadSoloLevel(); }
+    function loadSoloLevel() { if (!soloStats.started) return; const grid = document.getElementById('grid-S'), pit = document.getElementById('pit-S'); grid.innerHTML = ''; pit.innerHTML = ''; const isChallenge = soloStats.inChallenge; let colorSet = isChallenge ? getChallengeColors(soloStats.mode) : baseColors; let numBelly = isChallenge ? colorSet.length : (soloStats.mode==='h'?4:2); let numBall = numBelly + 1; const cur = pickRandom(colorSet, numBelly); cur.forEach(c => { const d = document.createElement('div'); d.className='belly'; d.dataset.v=c.v; d.dataset.n=c.n; d.style.background=c.v; d.textContent=c.n; grid.appendChild(d); }); const balls = []; for (let i=0; i<numBall; i++) balls.push(cur[i%cur.length]); balls.sort(()=>Math.random()-0.5); balls.forEach(c => { const b = document.createElement('div'); b.className='ball'; b.style.background=c.v; b.dataset.v=c.v; b.dataset.n=c.n; pit.appendChild(b); attachDrag(b, 'solo-container', 'solo'); }); }
+    function checkSoloLevelComplete() { if (!document.querySelector('#solo-container .ball')) { soloStats.rounds++; updateSoloUI(); sfx('win'); if (soloStats.rounds === CHALLENGE_TRIGGER_SOLO && !soloStats.inChallenge) { soloStats.inChallenge = true; showChallengeBanner('solo-container'); setTimeout(() => { if (soloStats.started) loadSoloLevel(); }, 1500); } else setTimeout(() => { if (soloStats.started) loadSoloLevel(); }, 500); } }
+    function updateSoloUI() { document.getElementById('solo-rounds').textContent = soloStats.rounds; document.getElementById('solo-errors').textContent = soloStats.errors; }
+    function showSoloResult() { document.getElementById('res-S').style.display='flex'; document.getElementById('soloGameArea').style.display='none'; const best = soloStats.player ? getBest(soloStats.player.name) : null; let html = `<p><b>${soloStats.player?.avatar||''} ${soloStats.player?.name||''}</b></p><p>🔄 完成輪數：<b>${soloStats.rounds}</b></p><p>❌ 錯誤次數：<b>${soloStats.errors}</b></p>`; if (best) html += `<p>🏆 最佳紀錄：${best.rounds}輪 ${best.errors}錯</p>`; document.getElementById('report-S').innerHTML = html; }
+
+    function startDualClock() { if (timerOn) return; timerOn = true; updateDualTimerDisplay(); timerInterval = setInterval(() => { timeLeft--; updateDualTimerDisplay(); if (timeLeft<=0) { clearInterval(timerInterval); timerInterval=null; finishAllDual(); } if (stats.L.fin && stats.R.fin) { clearInterval(timerInterval); timerInterval=null; } }, 1000); }
+    function updateDualTimerDisplay() { const el = document.getElementById('timer'); el.textContent = timeLeft; el.style.color = timeLeft<=10 ? '#F44336' : (timeLeft<=20 ? '#FF9800' : '#FF6B6B'); }
+    function updateDualProgressBar(side) { const fill = document.getElementById('f-'+side), label = document.getElementById('prog-label-'+side); if (stats[side].inChallenge) { fill.style.width='100%'; label.textContent='5/5 挑戰中'; } else { fill.style.width=(stats[side].s/MAX_ROUNDS_DUAL*100)+'%'; label.textContent=stats[side].s+'/'+MAX_ROUNDS_DUAL; } }
+    function updateDualUI() { updateDualProgressBar('L'); updateDualProgressBar('R'); updateDualTimerDisplay(); }
+    function backToModeSelect() { if (timerInterval) { clearInterval(timerInterval); timerInterval=null; } timerOn=false; timeLeft=60; resetDual(); resetSolo(); document.getElementById('solo-container').style.display='none'; document.getElementById('dual-container').style.display='none'; document.getElementById('dual-header').style.display='none'; document.getElementById('mode-select').style.display='flex'; }
+    function resetDual() { stats = { L:{s:0,m:[],mode:'',fin:false,started:false,inChallenge:false,player:null}, R:{s:0,m:[],mode:'',fin:false,started:false,inChallenge:false,player:null} }; dualReady = {L:false,R:false}; updateDualUI(); }
+    function resetSolo() { soloStats = { rounds:0,errors:0,mode:'',started:false,inChallenge:false,player:null,totalMistakes:[] }; }
+
+    // 单人模式入口
+    function startSoloMode() { currentMode='solo'; document.getElementById('mode-select').style.display='none'; document.getElementById('solo-container').style.display='flex'; document.getElementById('dual-header').style.display='none'; document.getElementById('dual-container').style.display='none'; resetSolo(); showDifficultyOverlay('soloMenu', 'solo'); if (!musicPlaying) startMusic(); }
+    function showDifficultyOverlay(containerId, type) {
+        const container = document.getElementById(containerId);
+        container.innerHTML = `<div class="player-select-panel"><h3>🎯 選擇難度</h3><button class="btn btn-s" id="diffEasy">🌟 簡單</button><button class="btn btn-h" id="diffHard">🔥 進階</button><button class="btn btn-back" id="diffBack">↩ 返回</button></div>`;
+        document.getElementById('diffEasy').addEventListener('click', () => { if (type==='solo') { soloStats.mode='s'; showSoloPlayerSelection('s'); } else startDualPlayerSelection('s'); });
+        document.getElementById('diffHard').addEventListener('click', () => { if (type==='solo') { soloStats.mode='h'; showSoloPlayerSelection('h'); } else startDualPlayerSelection('h'); });
+        document.getElementById('diffBack').addEventListener('click', backToModeSelect);
+    }
+    function showSoloPlayerSelection(mode) {
+        const players = getPlayersByMode(mode); const menu = document.getElementById('soloMenu');
+        menu.innerHTML = `<div class="player-select-panel"><h3>👤 選擇玩家 (${mode==='s'?'簡單':'進階'})</h3><div class="player-grid" id="soloPlayerGrid"></div><button class="btn btn-back" id="soloBack">↩ 返回</button></div>`;
+        buildPlayerGrid('soloPlayerGrid', players, (player) => { soloStats.player = player; document.getElementById('soloMenu').style.display='none'; document.getElementById('soloGameArea').style.display='flex'; document.getElementById('soloPlayerInfo').textContent = `${player.avatar} ${player.name}`; setupSolo(mode); });
+        document.getElementById('soloBack').addEventListener('click', () => showDifficultyOverlay('soloMenu', 'solo'));
+    }
+    // 双人模式入口
+    function startDualMode() { currentMode='dual'; document.getElementById('mode-select').style.display='none'; document.getElementById('dual-header').style.display='flex'; document.getElementById('dual-container').style.display='flex'; document.getElementById('solo-container').style.display='none'; resetDual(); dualReady={L:false,R:false}; const overlay = document.createElement('div'); overlay.className='player-select-panel'; overlay.style.position='fixed'; overlay.style.zIndex='3000'; overlay.innerHTML = `<h3>🎯 選擇難度</h3><p>雙人同步難度</p><button class="btn btn-s" id="dualEasy">🌟 簡單</button><button class="btn btn-h" id="dualHard">🔥 進階</button><button class="btn btn-back" id="dualBack">↩ 返回</button>`; document.body.appendChild(overlay); document.getElementById('dualEasy').addEventListener('click', () => { overlay.remove(); startDualPlayerSelection('s'); }); document.getElementById('dualHard').addEventListener('click', () => { overlay.remove(); startDualPlayerSelection('h'); }); document.getElementById('dualBack').addEventListener('click', () => { overlay.remove(); backToModeSelect(); }); if (!musicPlaying) startMusic(); }
+    function startDualPlayerSelection(mode) { const players = getPlayersByMode(mode); ['L','R'].forEach(side => { stats[side].mode = mode; document.getElementById('select-'+side).style.display='flex'; document.getElementById('select-'+side).innerHTML = `<div class="player-select-panel"><h3>${side==='L'?'🦁 左邊玩家':'🐬 右邊玩家'} (${mode==='s'?'簡單':'進階'})</h3><div class="player-grid" id="playerGrid${side}"></div></div>`; buildPlayerGrid('playerGrid'+side, players, (player, card) => { if (dualReady[side]) return; dualReady[side] = true; stats[side].player = player; const container = document.getElementById('select-'+side); container.querySelectorAll('.player-card').forEach(c => c.classList.remove('selected')); card.classList.add('selected'); container.innerHTML = `<div class="waiting-screen"><div>${player.avatar} ${player.name}</div><div>⏳ 等待另一位玩家...</div></div>`; if (dualReady.L && dualReady.R) setTimeout(() => startDualGame(mode), 500); }); }); }
+    function startDualGame(mode) { ['L','R'].forEach(s => { document.getElementById('select-'+s).style.display='none'; document.getElementById('game-'+s).style.display='flex'; document.getElementById('playerLabel'+s).textContent = stats[s].player.avatar + ' ' + stats[s].player.name; document.getElementById('tag-'+s).textContent = stats[s].player.avatar + ' ' + stats[s].player.name; document.getElementById('tag-'+s).className = 'status-tag status-waiting'; setupDual(s, mode); }); if (!timerOn) startDualClock(); }
+
+    // 返回按钮绑定
+    document.getElementById('btnEndSolo').addEventListener('click', () => { soloStats.started=false; if (soloStats.player) saveScore(soloStats.player.name, soloStats.rounds, soloStats.errors); showSoloResult(); });
+    document.getElementById('btnRestartSolo').addEventListener('click', () => { const m=soloStats.mode, p=soloStats.player; resetSolo(); soloStats.player=p; document.getElementById('res-S').style.display='none'; document.getElementById('soloGameArea').style.display='flex'; document.getElementById('soloPlayerInfo').textContent=`${p.avatar} ${p.name}`; setupSolo(m); });
+    document.getElementById('btnSoloResBack').addEventListener('click', backToModeSelect);
+    document.getElementById('btnDualRestart').addEventListener('click', ()=>location.reload());
+    document.getElementById('btnDualBack').addEventListener('click', backToModeSelect);
+    document.getElementById('btnDualRestartR').addEventListener('click', ()=>location.reload());
+    document.getElementById('btnDualBackR').addEventListener('click', backToModeSelect);
+
+    document.getElementById('btnSoloMode').addEventListener('click', startSoloMode);
+    document.getElementById('btnDualMode').addEventListener('click', startDualMode);
+    document.getElementById('mode-select').style.display = 'flex';
+})();
+</script>
+</body>
+</html>
